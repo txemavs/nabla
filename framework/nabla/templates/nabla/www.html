@@ -1,0 +1,76 @@
+{% extends 'nabla/base.html' %}
+{% load i18n %}
+
+{% block head %}
+  <title>NABLA</title>
+
+
+{% endblock %}
+
+
+
+{% block top %}
+  <v-app-bar clipped-right app dark elevate-on-scroll>
+    <div><v-img alt="nabla.net" class="shrink" contain src="/static/img/nabla_192.png" transition="scale-transition" width="48"></div>
+    <div class="mr-3"></div>
+    {% if request.user.is_anonymous %}
+    <v-btn text href="/accounts/login/?next=%2F">{% trans "Sign In" %}</v-btn>
+    {% else %}
+    <v-toolbar-title>{{ request.user.username }}</v-toolbar-title>
+    {% endif %}
+    <v-spacer></v-spacer>
+  </v-app-bar>
+{% endblock %}
+
+{% block main %}
+  <v-fade-transition mode="out-in">
+    <div id="screen">
+      {% include "nabla/home.html" %}
+      <component v-bind:is="screen"></component>
+      </div>
+        
+       
+
+          
+
+  </v-fade-transition>  
+{% endblock %}
+
+
+{% block js %}
+<script type='module'>
+
+{% if scanned %}
+// Scanned QR: {{ scanned }}
+{% endif %}
+
+document.body.style.backgroundColor='white'
+document.body.style.backgroundImage='none'
+
+Vue.component("BaseImg",{template:'<v-img v-bind="$attrs" v-on="$listeners"><slot /></v-img>'});
+
+const vuetify = new Vuetify();
+
+  window.app = new Vue({
+    vuetify,
+    el: '#nabla',
+    delimiters: ['[[', ']]'],
+    data: function () {
+      return {
+        screen: null,
+      }
+    },
+    mounted() {
+      const home = document.getElementById('home');
+      var temp = home.innerHTML
+      home.innerHTML="";
+      this.screen =  Vue.component("page",{template:"<div class='home'>"+temp+"</div>"})
+        
+    }
+  })
+  console.log("Nabla landing page ready.")
+
+
+  
+</script>
+{% endblock %}

@@ -1,0 +1,79 @@
+version: '3.7'
+
+services:
+
+  db:
+    image: postgis/postgis:12-master
+    volumes:
+      - database:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+    networks:
+      - net
+
+  redis:
+    build:
+      context: ./compose/redis
+    image: broker
+    command: sh -c "./init.sh"
+    networks:
+      - net
+
+  wsgi:
+    build: ./framework
+    image: 'nabla:latest'
+    working_dir: /usr/src/framework
+    volumes:
+      - collected:/usr/src/collected/static/
+      - ./framework/:/usr/src/framework/
+    command: uwsgi --uid 1000 --gid 1000
+    env_file:
+      - ./.env
+    environment:
+      - ENTRY=django
+    depends_on:
+      - db
+      - redis
+    networks:
+      - net
+    expose:
+      - "8001"
+
+  asgi:
+    image: 'nabla:latest'
+    working_dir: /usr/src/framework
+    command: daphne -b 0.0.0.0 -p 8002 server.asgi:application
+    env_file:
+      - ./.env
+    depends_on:
+      - db
+      - wsgi
+      - redis
+    networks:
+      - net
+    expose:
+      - "8002"
+
+  web:
+    build: ./compose/nginx
+    env_file:
+      - ./.env
+    ports:
+      - "8080:80"
+    depends_on:
+      - wsgi
+      - asgi 
+    volumes_from:
+      - wsgi
+    networks:
+      - net
+
+volumes:
+  database:
+  collected:
+
+
+networks:
+  net:

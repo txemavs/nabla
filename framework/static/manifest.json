@@ -1,0 +1,25 @@
+{
+  "short_name": "Nabla",
+  "name": "Nabla Remote Control",
+  "description": "Hyperreactive Framework",
+  "version": "0.0.1",
+  "icons": [
+    {
+      "src": "/static/img/maskable_512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/img/nabla_192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    }
+
+  ],
+  "start_url": "/?from=app",
+  "display": "standalone",
+  "background_color": "#000020",
+  "theme_color": "#000020",
+  "scope": "/"
+}

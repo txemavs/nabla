@@ -1,0 +1,198 @@
+{% extends 'nabla/base.html' %}
+
+{% block head %}
+  <title>NABLA.NET</title>
+{% endblock %}
+
+{% block style %}
+  <style type='text/css' id="css">
+    html {overflow-y: auto}
+  </style>
+{% endblock %}
+
+{% block main %}
+    
+    <div id="fullscreen" v-sync="fullscreen">
+        <n-screen :scale="scale"></n-screen>
+      <n-terminal v-if="show.terminal" :show="show.terminal"></n-terminal>
+    </div>
+{% endblock %}
+
+{% block top %}
+<system v-show="show.system" :title='title' :time="time"></system>  
+{% endblock %}
+
+{% block bottom %}
+  <status v-show="show.status" :status="status" :fullscreen="fullscreen" />    
+{% endblock %}
+
+{% block modal %}
+   <qrcode v-model="show.qrcode" data="/control/{% if device %}{{device.id}}{% else %}{{ token }}{% endif %}" />
+{% endblock %}
+
+
+{% block js %}
+<script type='module'>
+  
+  import framework from '/static/nabla/framework.js'
+  import system from '/static/nabla/ui/system.js';
+  import status from '/static/nabla/ui/status.js';
+  import qrcode from '/static/nabla/ui/qr/code.js';
+ 
+  window.app = new Vue({
+
+    mixins: [framework],
+    components: { system, status, qrcode },
+
+    data() {return{
+      title: "{% if device.name %}{{ device.name }}{% else %}{{device.id}}{% endif %}",
+      status: 'Loading...',
+      scale: true,
+      show: {
+        terminal: false,
+        system: true,
+        status: true,
+        qrcode: false,
+        dt:0
+      },
+      starting: true,
+    }},
+    
+    mounted() {
+      var self = this;
+      var bus = this.$bus;
+      bus.channel = '{% if device %}{{ device.id }}{% else %}{{ token }}{% endif %}'
+      bus.log("Nabla Framework v0.0.1")
+      bus.log("")
+      if (self.$bus.device) {
+        bus.$once("connected", self.start );
+      } else {
+        bus.log("app: new device detected")
+        bus.$once("connected", self.bind );  
+      }
+      bus.$on("show:qrcode", (show)=>{self.show.qrcode=show });
+      bus.$on("show:system", (value)=>{self.show.system = (value==undefined) ? !self.show.system : value });
+      bus.$on("show:terminal", (value)=>{self.show.terminal = (value==undefined) ? !self.show.terminal : value });
+      bus.$on("received", self.received)
+      bus.connect();
+    },      
+
+    methods: {
+
+      info() {
+        return {
+          system: navigator.platform,
+          width: window.screen.width,
+          height: window.screen.height,
+          //orientation: screen.orientation.angle,
+        }
+      },
+
+
+      bind() {
+        this.log("app: waiting for remote control")
+        //bus.send({'device':bus.device.id,'message':'BINDING'});
+        this.status="Waiting for remote control bind"
+        this.show.qrcode=true;
+      },
+
+      bound(data) {
+        
+        this.show.qrcode=false;
+        app.status="I'm bound"; 
+        this.identificate(data.device)
+        var device = this.info()
+        device.id = data.device
+        bus.send({'device':device,'message':'bound'});
+        
+      },
+
+      start() {
+        if (this.starting) {
+          this.log("app: Device '"+this.$bus.device+"' online");
+          this.show.terminal = false;
+          this.starting=false
+          this.status="Ready"
+        }
+      },
+
+      received(data) {
+        var self = this;
+        var bus = this.$bus;
+        app.status='Updated '+(new Date()).toLocaleString();
+
+        switch (data.type) {
+          case "device":
+
+            if (data.bind) {
+              bus.log("sys: bind command received ")
+              
+            }
+            if (data.view_id) { bus.$emit("screen:view", data.view_id ) }
+
+            if (data.ts) {
+              let now = (new Date()).getTime()+(new Date().getTimezoneOffset())
+              self.dt=(data.ts-now)/1000.0;
+              bus.log("sys: server "+self.dt)
+            }
+            if (data.unknown) {
+              self.bind()
+            }
+
+            if (data.device) {
+              if (data.device.bind) { self.bind() }
+              
+              if (data.device.view) { bus.$emit("screen:view", data.device.view ) }
+              
+              if (data.device.fullscreen) { 
+                bus.$emit("fullscreen");
+                self.show.system=false;
+                self.show.status=false;
+              }
+
+              if (data.device.hasOwnProperty('scale')) { 
+                this.scale = data.device.scale
+              }
+              self.status="OK"
+            }
+            if (data.changes) {
+              if(data.changes.name) {self.title= data.changes.name}
+              if(data.changes.view_id) {bus.$emit("screen:view", data.changes.view_id )}
+              if(data.changes.hasOwnProperty('scale')) {
+                self.scale= data.changes.scale}
+              
+            }
+            if (data.status) {
+              switch (data.status) {
+                case "bound":
+                  self.bound(data);
+                  break;
+                default:
+                  bus.log("app: unhandled message '"+JSON.stringify(data)+"'")
+                  break;
+              }
+            }
+            break;
+          
+          case "view":
+            if (data.changes) {
+                if(data.changes.component_id) {
+
+                  bus.$emit("screen:view", this.$bus.view )
+                }
+              }
+            break;
+          
+          case "component":
+            if (data.changes) {bus.$emit("screen:view", this.$bus.view )}
+            break;
+        }
+      }
+    },
+  })
+
+  app.awaken();
+
+
+</script>
+{% endblock %}

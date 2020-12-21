@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    {% block head %}<title>NABLA</title>{% endblock %}
+    <link rel="shortcut icon" href="/static/img/nabla_192.png" type="image/x-icon" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    <link href="/static/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="/static/css/vuetify.min.css" rel="stylesheet">
+    <link href="/static/css/app.css" rel="stylesheet">
+    <script src="/static/js/vue.js"></script>
+    <script src="/static/js/vuex.js"></script>
+    <script src="/static/js/vuetify.js"></script>
+    <script src="/static/js/axios.js"></script>
+    <script src="/static/js/lodash.min.js"></script>
+    <script src="/static/js/require/require.min.js" data-main="/static/js/require/main.js"></script>
+    <style type='text/css' id="css"></style>
+    {% block style %}{% endblock %}
+  </head>
+  <body>
+    <div id="nabla">
+      <v-app dark>
+        {% block top %}{% endblock %}
+        <v-main id="main">
+          {% block main %}{% endblock %}
+          {% block modal %}{% endblock %}
+        </v-main>
+      {% block bottom %}{% endblock %}
+      </v-app>
+    </div>
+    {% block js %}{% endblock %}
+    {% block body %}{% endblock %}
+  </body>
+</html>
