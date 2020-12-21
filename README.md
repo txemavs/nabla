@@ -1,5 +1,5 @@
 Nabla Framework
-***************
+===============
 
 
 This application is used to remotely control a set of web browsers.
@@ -14,8 +14,6 @@ and it also supports interactive screens.
 
 There is a server running this framework at nabla.net
 
-Introduction
-============
 
 Devices
 -------
@@ -66,7 +64,7 @@ The frontend uses Vue, Vuex and Vuetify.
 
 
 Installation
-============
+------------
 
 Use docker to bring up all the services. See the makefile for details.
 
