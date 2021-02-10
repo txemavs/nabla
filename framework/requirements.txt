@@ -12,7 +12,7 @@ channels-redis==2.4.2
 chardet==3.0.4
 cliapp==1.0.9
 constantly==15.1.0
-cryptography==3.2
+cryptography==3.3.2
 cssutils==1.0.2
 daphne==2.5.0
 defusedxml==0.6.0
