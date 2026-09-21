@@ -1,2 +1,18 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# Environment
 .env
+.env.local
 .secret
+
+# Build artifacts
+*.log
